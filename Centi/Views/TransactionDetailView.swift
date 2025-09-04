@@ -23,7 +23,6 @@ struct TransactionDetailView: View {
     @State private var selectedDate: Date
     @State private var selectedAccount: Account?
     @State private var toAccount: Account?
-    
     @State private var showingDeleteAlert = false
     
     init(transaction: Transactions) {
@@ -95,7 +94,7 @@ struct TransactionDetailView: View {
                 }
             }
             .navigationTitle("Edit Transaction")
-            .navigationBarTitleDisplayMode(.automatic)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
@@ -116,9 +115,48 @@ struct TransactionDetailView: View {
     }
     
     private func saveTransaction() {
-        guard let amountValue = Double(amount), amountValue > 0 else { return }
+        guard let newAmount = Double(amount), newAmount > 0 else { return }
         
-        transaction.amount = amountValue
+        let originalAmount = transaction.amount
+        let originalType = transaction.type
+        let originalAccount = transaction.account
+        let originalToAccount = transaction.toAccount
+        
+        // Reverse the original transaction's effect on account balances
+        if let account = originalAccount {
+            switch originalType {
+            case .income:
+                account.balance -= originalAmount
+            case .expense:
+                account.balance += originalAmount
+            case .transfer:
+                account.balance += originalAmount
+                if let toAcc = originalToAccount {
+                    toAcc.balance -= originalAmount
+                    toAcc.modifiedAt = Date()
+                }
+            }
+        }
+        
+        // Apply the new transaction's effect on account balances
+        if let account = selectedAccount {
+            switch selectedType {
+            case .income:
+                account.balance += newAmount
+            case .expense:
+                account.balance -= newAmount
+            case .transfer:
+                account.balance -= newAmount
+                if let toAcc = toAccount {
+                    toAcc.balance += newAmount
+                    toAcc.modifiedAt = Date()
+                }
+            }
+            account.modifiedAt = Date()
+        }
+        
+        // Update the transaction properties
+        transaction.amount = newAmount
         transaction.type = selectedType
         transaction.category = category
         transaction.note = note.isEmpty ? nil : note

@@ -12,6 +12,7 @@ struct AccountsView: View {
      @Environment(\.modelContext) private var modelContext
      @Query private var accounts: [Account]
      @State private var showingAddAccount = false
+     @State private var selectedAccount: Account?
      
      var body: some View {
          NavigationStack {
@@ -21,9 +22,21 @@ struct AccountsView: View {
                          EmptyAccountsView()
                              .padding()
                      } else {
-                         ForEach(accounts) { account in
-                             AccountCard(account: account)
-                                 .padding(.horizontal)
+                         LazyVStack(spacing: 15) {
+                             ForEach(accounts) { account in
+                                 AccountCard(account: account)
+                                     .padding(.horizontal)
+                                     .contentShape(Rectangle())
+                                     .onTapGesture {
+                                         selectedAccount = account
+                                     }
+                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                         Button("Delete") {
+                                             deleteAccount(account)
+                                         }
+                                         .tint(.red)
+                                     }
+                             }
                          }
                      }
                  }
@@ -44,6 +57,19 @@ struct AccountsView: View {
              .sheet(isPresented: $showingAddAccount) {
                  AddAccountView()
              }
+             .sheet(item: $selectedAccount) { account in
+                 AccountDetailView(account: account)
+             }
+         }
+     }
+     
+     private func deleteAccount(_ account: Account) {
+         modelContext.delete(account)
+         
+         do {
+             try modelContext.save()
+         } catch {
+             print("Error deleting account: \(error)")
          }
      }
 }

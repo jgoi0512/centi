@@ -18,6 +18,9 @@ struct DashboardView: View {
     @State private var selectedAccounts: Set<String> = []
     @State private var selectedCategories: Set<String> = []
     @State private var selectedTypes: Set<Transactions.TransactionType> = []
+    @State private var selectedTransaction: Transactions?
+    @State private var transactionToDelete: Transactions?
+    @State private var showingDeleteAlert = false
     
     private var totalBalance: Double {
         accounts.reduce(0) { $0 + $1.balance }
@@ -63,12 +66,12 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                LazyVStack(spacing: 20, pinnedViews: []) {
                     // Total Balance Card
                     TotalBalanceCard(balance: totalBalance)
                         .padding(.horizontal)
                     
-                    // Recent Transactions
+                    // Recent Transactions Section
                     VStack(alignment: .leading, spacing: 15) {
                         HStack {
                             Text("Recent Transactions")
@@ -92,20 +95,25 @@ struct DashboardView: View {
                                 .padding(.horizontal)
                         } else {
                             ForEach(sortedDates, id: \.self) { date in
-                                VStack(alignment: .leading, spacing: 10) {
+                                VStack(alignment: .leading, spacing: 8) {
                                     Text(dateLabel(for: date))
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.secondary)
                                         .padding(.horizontal)
-                                        .padding(.top, 10)
+                                        .padding(.top, date == sortedDates.first ? 0 : 20)
                                     
-                                    ForEach(groupedTransactions[date] ?? []) { transaction in
-                                        DashboardTransactionRow(
-                                            transaction: transaction,
-                                            onDelete: { deleteTransaction(transaction) }
-                                        )
-                                        .padding(.horizontal)
+                                    VStack(spacing: 8) {
+                                        ForEach(groupedTransactions[date] ?? []) { transaction in
+                                            SwipeableTransactionRow(
+                                                transaction: transaction,
+                                                onTap: { selectedTransaction = transaction },
+                                                onDelete: { 
+                                                    transactionToDelete = transaction
+                                                    showingDeleteAlert = true
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -116,6 +124,7 @@ struct DashboardView: View {
                 .padding(.top)
             }
             .navigationTitle("Dashboard")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
@@ -136,13 +145,22 @@ struct DashboardView: View {
                     selectedTypes: $selectedTypes
                 )
             }
-            .background(
-                LinearGradient(
-                    colors: [Color(.systemBackground), Color(.systemGray6)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
+            .sheet(item: $selectedTransaction) { transaction in
+                TransactionDetailView(transaction: transaction)
+            }
+            .alert("Delete Transaction", isPresented: $showingDeleteAlert) {
+                Button("Cancel", role: .cancel) { 
+                    transactionToDelete = nil
+                }
+                Button("Delete", role: .destructive) {
+                    if let transaction = transactionToDelete {
+                        deleteTransaction(transaction)
+                    }
+                    transactionToDelete = nil
+                }
+            } message: {
+                Text("Are you sure you want to delete this transaction? This action cannot be undone.")
+            }
         }
     }
     

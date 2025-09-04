@@ -12,21 +12,24 @@ struct TransactionRow: View {
     @StateObject private var currencyManager = CurrencyManager.shared
     
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             // Icon
             Image(systemName: iconForTransaction)
                 .font(.title3)
                 .foregroundColor(colorForTransaction)
-                .frame(width: 40, height: 40)
+                .frame(width: 36, height: 36)
                 .background(
                     Circle()
                         .fill(colorForTransaction.opacity(0.1))
                 )
             
-            VStack(alignment: .leading, spacing: 4) {
+            // Transaction Details
+            VStack(alignment: .leading, spacing: 3) {
+                // Category and Account
                 HStack {
                     Text(transaction.category)
                         .font(.headline)
+                        .foregroundColor(.primary)
                         .lineLimit(1)
                     
                     Spacer()
@@ -36,53 +39,58 @@ struct TransactionRow: View {
                             .font(.caption2)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color(account.color).opacity(0.2))
+                            .background(Color(account.color).opacity(0.15))
                             .foregroundColor(Color(account.color))
                             .cornerRadius(4)
                     }
                 }
                 
+                // Note (if exists)
                 if let note = transaction.note, !note.isEmpty {
                     Text(note)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
                 
-                HStack {
+                // Time and Transfer info
+                HStack(spacing: 4) {
                     Text(transaction.date, style: .time)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     if transaction.type == .transfer, let toAccount = transaction.toAccount {
-                        Image(systemName: "arrow.right")
-                            .font(.caption2)
+                        Text("→")
+                            .font(.caption)
                             .foregroundColor(.secondary)
                         
                         Text(toAccount.name)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
+                    
+                    Spacer()
+                    
+                    // Transaction type badge
+                    Text(transaction.type.rawValue)
+                        .font(.caption2)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(colorForTransaction.opacity(0.1))
+                        .foregroundColor(colorForTransaction)
+                        .cornerRadius(3)
                 }
             }
             
-            Spacer()
-            
-            VStack(alignment: .trailing, spacing: 4) {
-                Text("\(transaction.type == .expense ? "-" : "+")\(currencyManager.formatAmount(transaction.amount, currency: transaction.account?.currency))")
-                    .font(.headline)
-                    .foregroundColor(colorForTransaction)
-                
-                Text(transaction.type.rawValue)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
+            // Amount
+            Text("\(transaction.type == .expense ? "-" : "+")\(currencyManager.formatAmount(transaction.amount, currency: transaction.account?.currency))")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(colorForTransaction)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 15)
-                .fill(.ultraThinMaterial)
-        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .cornerRadius(0)
     }
     
     private var iconForTransaction: String {

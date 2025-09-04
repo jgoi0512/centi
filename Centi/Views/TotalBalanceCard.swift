@@ -21,6 +21,7 @@ struct TotalBalanceCard: View {
                 .font(.system(size: 36, weight: .bold, design: .rounded))
                 .foregroundColor(.primary)
                 .contentTransition(.numericText(value: balance))
+                .animation(.easeInOut(duration: 0.8), value: balance)
             
             HStack {
                 Label("All Accounts", systemImage: "checkmark.circle.fill")
