@@ -36,18 +36,11 @@ struct AccountsView: View {
                      Button(action: {
                          showingAddAccount = true
                      }) {
-                         Image(systemName: "plus.circle.fill")
+                         Image(systemName: "plus")
                              .font(.title3)
                      }
                  }
              }
-             .background(
-                 LinearGradient(
-                     colors: [Color(.systemBackground), Color(.systemGray6)],
-                     startPoint: .top,
-                     endPoint: .bottom
-                 )
-             )
              .sheet(isPresented: $showingAddAccount) {
                  AddAccountView()
              }

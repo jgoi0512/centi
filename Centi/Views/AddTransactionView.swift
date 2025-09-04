@@ -12,6 +12,7 @@ struct AddTransactionView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var accounts: [Account]
+    @Query private var categories: [Category]
     
     @State private var selectedType: Transactions.TransactionType = .expense
     @State private var amount: String = ""
@@ -21,8 +22,6 @@ struct AddTransactionView: View {
     @State private var note: String = ""
     @State private var date = Date()
     
-    private let expenseCategories = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Healthcare", "Education", "Other"]
-    private let incomeCategories = ["Salary", "Freelance", "Investment", "Gift", "Refund", "Other"]
     
     var body: some View {
         NavigationStack {
@@ -33,7 +32,7 @@ struct AddTransactionView: View {
                             Text(type.rawValue).tag(type)
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
+                    .pickerStyle(.segmented)
                 }
                 
                 Section("Amount") {
@@ -66,8 +65,8 @@ struct AddTransactionView: View {
                 Section("Category") {
                     Picker("Category", selection: $category) {
                         Text("Select Category").tag("")
-                        ForEach(selectedType == .expense ? expenseCategories : incomeCategories, id: \.self) { cat in
-                            Text(cat).tag(cat)
+                        ForEach(categories, id: \.id) { cat in
+                            Text(cat.name).tag(cat.name)
                         }
                     }
                 }
@@ -90,7 +89,7 @@ struct AddTransactionView: View {
                     Button("Save") {
                         saveTransaction()
                     }
-                    .disabled(amount.isEmpty || selectedAccount == nil || (selectedType == .transfer && toAccount == nil))
+                    .disabled(amount.isEmpty || selectedAccount == nil || category.isEmpty || (selectedType == .transfer && toAccount == nil))
                 }
             }
         }
@@ -98,12 +97,13 @@ struct AddTransactionView: View {
     
     private func saveTransaction() {
         guard let amountDouble = Double(amount),
-              let account = selectedAccount else { return }
+              let account = selectedAccount,
+              !category.isEmpty else { return }
         
         let transaction = Transactions(
             amount: amountDouble,
             type: selectedType,
-            category: category.isEmpty ? selectedType.rawValue : category,
+            category: category,
             note: note.isEmpty ? nil : note,
             date: date,
             account: account,

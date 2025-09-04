@@ -11,12 +11,14 @@ import SwiftData
 struct AddAccountView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var currencyManager = CurrencyManager.shared
     
     @State private var accountName = ""
     @State private var accountType: Account.AccountType = .transaction
     @State private var initialBalance = ""
     @State private var selectedIcon = "creditcard"
     @State private var selectedColor = "blue"
+    @State private var selectedCurrency: String? = nil
     
     private let icons = ["creditcard", "banknote", "dollarsign.circle", "building.columns", "chart.line.uptrend.xyaxis"]
     private let colors = ["blue", "green", "purple", "orange", "red", "pink", "yellow"]
@@ -37,12 +39,31 @@ struct AddAccountView: View {
                         .keyboardType(.decimalPad)
                 }
                 
+                Section("Currency") {
+                    Picker("Currency", selection: $selectedCurrency) {
+                        Text("Use Default (\(currencyManager.defaultCurrency))").tag(nil as String?)
+                        
+                        ForEach(Array(CurrencyManager.currencies.keys.sorted()), id: \.self) { code in
+                            HStack {
+                                Text("\(code) (\(CurrencyManager.currencies[code]?.0 ?? "$"))")
+                            }
+                            .tag(code as String?)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                    
+                    Text("If no currency is selected, the default currency from settings will be used.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
                 Section("Appearance") {
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 15) {
+                        HStack(spacing: 10) {
                             ForEach(icons, id: \.self) { icon in
                                 Image(systemName: icon)
                                     .font(.title2)
+                                    .foregroundColor(selectedIcon == icon ? .blue : .primary)
                                     .frame(width: 50, height: 50)
                                     .background(
                                         Circle()
@@ -52,12 +73,14 @@ struct AddAccountView: View {
                                         Circle()
                                             .stroke(selectedIcon == icon ? Color.blue : Color.clear, lineWidth: 2)
                                     )
+                                    .scaleEffect(selectedIcon == icon ? 1.05 : 1.0)
+                                    .animation(.easeInOut(duration: 0.2), value: selectedIcon)
                                     .onTapGesture {
                                         selectedIcon = icon
                                     }
                             }
                         }
-                        .padding(.vertical)
+                        .padding()
                     }
                     
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -68,14 +91,16 @@ struct AddAccountView: View {
                                     .frame(width: 40, height: 40)
                                     .overlay(
                                         Circle()
-                                            .stroke(selectedColor == color ? Color.primary : Color.clear, lineWidth: 3)
+                                            .stroke(selectedColor == color ? Color.primary : Color.clear, lineWidth: 2)
                                     )
+                                    .scaleEffect(selectedColor == color ? 1.1 : 1.0)
+                                    .animation(.easeInOut(duration: 0.2), value: selectedColor)
                                     .onTapGesture {
                                         selectedColor = color
                                     }
                             }
                         }
-                        .padding(.vertical)
+                        .padding()
                     }
                 }
             }
@@ -105,7 +130,8 @@ struct AddAccountView: View {
             type: accountType,
             balance: balance,
             icon: selectedIcon,
-            color: selectedColor
+            color: selectedColor,
+            currency: selectedCurrency
         )
         
         modelContext.insert(account)

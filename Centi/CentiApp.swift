@@ -14,7 +14,7 @@ struct CentiApp: App {
     
     init() {
         do {
-            let schema = Schema([Account.self, Transactions.self])
+            let schema = Schema([Account.self, Transactions.self, Category.self])
             let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .automatic)
             container = try ModelContainer(for: schema, configurations: [config])
         } catch {

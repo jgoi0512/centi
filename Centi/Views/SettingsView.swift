@@ -8,9 +8,10 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @StateObject private var currencyManager = CurrencyManager.shared
     @State private var iCloudSyncEnabled = true
     @State private var notificationsEnabled = false
-    @State private var currency = "USD"
+    @State private var showingCategoryManagement = false
     
     var body: some View {
         NavigationStack {
@@ -27,11 +28,31 @@ struct SettingsView: View {
                 }
                 
                 Section("Currency") {
-                    Picker("Currency", selection: $currency) {
-                        Text("USD ($)").tag("USD")
-                        Text("EUR (€)").tag("EUR")
-                        Text("GBP (£)").tag("GBP")
-                        Text("AUD ($)").tag("AUD")
+                    Picker("Default Currency", selection: $currencyManager.defaultCurrency) {
+                        ForEach(Array(CurrencyManager.currencies.keys.sorted()), id: \.self) { code in
+                            HStack {
+                                Text("\(code) (\(CurrencyManager.currencies[code]?.0 ?? "$"))")
+                            }
+                            .tag(code)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                }
+                
+                Section("Categories") {
+                    Button(action: {
+                        showingCategoryManagement = true
+                    }) {
+                        HStack {
+                            Image(systemName: "tag")
+                                .foregroundColor(.blue)
+                            Text("Manage Categories")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
                     }
                 }
                 
@@ -45,6 +66,9 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .sheet(isPresented: $showingCategoryManagement) {
+                CategoryManagementView()
+            }
         }
     }
 }

@@ -16,18 +16,20 @@ final class Account {
     var balance: Double
     var icon: String
     var color: String
+    var currency: String?
     var createdAt: Date
     var modifiedAt: Date
     
     @Relationship(deleteRule: .cascade)
     var transactions: [Transactions]?
     
-    init(name: String, type: AccountType, balance: Double = 0, icon: String = "creditcard", color: String = "blue") {
+    init(name: String, type: AccountType, balance: Double = 0, icon: String = "creditcard", color: String = "blue", currency: String? = nil) {
         self.name = name
         self.type = type
         self.balance = balance
         self.icon = icon
         self.color = color
+        self.currency = currency
         self.createdAt = Date()
         self.modifiedAt = Date()
     }

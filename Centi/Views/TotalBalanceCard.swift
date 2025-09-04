@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TotalBalanceCard: View {
     let balance: Double
+    @StateObject private var currencyManager = CurrencyManager.shared
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -16,9 +17,10 @@ struct TotalBalanceCard: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            Text("$\(balance, specifier: "%.2f")")
+            Text(currencyManager.formatAmount(balance))
                 .font(.system(size: 36, weight: .bold, design: .rounded))
                 .foregroundColor(.primary)
+                .contentTransition(.numericText(value: balance))
             
             HStack {
                 Label("All Accounts", systemImage: "checkmark.circle.fill")

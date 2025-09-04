@@ -25,10 +25,7 @@ struct EmptyAccountsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(40)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-        )
+
     }
 }
 

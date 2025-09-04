@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AccountCard: View {
     let account: Account
+    @StateObject private var currencyManager = CurrencyManager.shared
     
     var body: some View {
         HStack {
@@ -33,7 +34,7 @@ struct AccountCard: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text("$\(account.balance, specifier: "%.2f")")
+                Text(currencyManager.formatAmount(account.balance, currency: account.currency))
                     .font(.headline)
                 
                 Text("Current Balance")
