@@ -11,7 +11,7 @@ import SwiftData
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var accounts: [Account]
-    @Query(sort: \Transactions.date, order: .reverse) private var transactions: [Transactions]
+    @Query(sort: \Transactions.date, order: .reverse, animation: .default) private var transactions: [Transactions]
     
     @State private var showingAddTransaction = false
     @State private var showingFilter = false
@@ -23,7 +23,12 @@ struct DashboardView: View {
     @State private var showingDeleteAlert = false
     
     private var totalBalance: Double {
-        accounts.reduce(0) { $0 + $1.balance }
+        if selectedAccounts.isEmpty {
+            return accounts.reduce(0) { $0 + $1.balance }
+        } else {
+            return accounts.filter { selectedAccounts.contains($0.name) }
+                          .reduce(0) { $0 + $1.balance }
+        }
     }
     
     private var filteredTransactions: [Transactions] {
@@ -37,13 +42,14 @@ struct DashboardView: View {
     }
     
     private var groupedTransactions: [Date: [Transactions]] {
-        Dictionary(grouping: filteredTransactions.prefix(50)) { transaction in
+        let limitedTransactions = Array(filteredTransactions.prefix(100))
+        return Dictionary(grouping: limitedTransactions) { transaction in
             Calendar.current.startOfDay(for: transaction.date)
         }
     }
     
     private var hasActiveFilters: Bool {
-        !selectedAccounts.isEmpty || !selectedCategories.isEmpty || !selectedTypes.isEmpty
+        !selectedCategories.isEmpty || !selectedTypes.isEmpty
     }
     
     private var sortedDates: [Date] {
@@ -65,14 +71,20 @@ struct DashboardView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 20, pinnedViews: []) {
-                    // Total Balance Card
-                    TotalBalanceCard(balance: totalBalance)
-                        .padding(.horizontal)
+            VStack(spacing: 0) {
+                // Total Balance Card - Fixed at top
+                TotalBalanceCard(
+                    balance: totalBalance,
+                    accounts: accounts,
+                    selectedAccounts: $selectedAccounts
+                )
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .background(Color(.systemBackground))
+                .zIndex(1)
                     
-                    // Recent Transactions Section
-                    VStack(alignment: .leading, spacing: 15) {
+                    // Recent Transactions List
+                    VStack(alignment: .leading, spacing: 0) {
                         HStack {
                             Text("Recent Transactions")
                                 .font(.title2)
@@ -89,42 +101,46 @@ struct DashboardView: View {
                             }
                         }
                         .padding(.horizontal)
+                        .padding(.vertical, 15)
+                        .background(Color(.systemBackground))
                         
                         if transactions.isEmpty {
                             EmptyTransactionView()
                                 .padding(.horizontal)
                         } else {
-                            ForEach(sortedDates, id: \.self) { date in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(dateLabel(for: date))
-                                        .font(.subheadline)
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.secondary)
-                                        .padding(.horizontal)
-                                        .padding(.top, date == sortedDates.first ? 0 : 20)
-                                    
-                                    VStack(spacing: 8) {
+                            List {
+                                ForEach(sortedDates, id: \.self) { date in
+                                    Section {
                                         ForEach(groupedTransactions[date] ?? []) { transaction in
-                                            SwipeableTransactionRow(
-                                                transaction: transaction,
-                                                onTap: { selectedTransaction = transaction },
-                                                onDelete: { 
-                                                    transactionToDelete = transaction
-                                                    showingDeleteAlert = true
+                                            TransactionRow(transaction: transaction)
+                                                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                                .onTapGesture {
+                                                    selectedTransaction = transaction
                                                 }
-                                            )
+                                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                                    Button("Delete") {
+                                                        transactionToDelete = transaction
+                                                        showingDeleteAlert = true
+                                                    }
+                                                    .tint(.red)
+                                                }
                                         }
+                                    } header: {
+                                        Text(dateLabel(for: date))
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.secondary)
+                                            .textCase(nil)
                                     }
                                 }
                             }
+                            .listStyle(.insetGrouped)
                         }
                     }
-                    .padding(.bottom, 100)
-                }
-                .padding(.top)
             }
             .navigationTitle("Dashboard")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
@@ -140,7 +156,6 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showingFilter) {
                 TransactionFilterView(
-                    selectedAccounts: $selectedAccounts,
                     selectedCategories: $selectedCategories,
                     selectedTypes: $selectedTypes
                 )
@@ -165,29 +180,31 @@ struct DashboardView: View {
     }
     
     private func deleteTransaction(_ transaction: Transactions) {
-        // Update account balances before deleting the transaction
-        if let account = transaction.account {
-            switch transaction.type {
-            case .income:
-                account.balance -= transaction.amount
-            case .expense:
-                account.balance += transaction.amount
-            case .transfer:
-                account.balance += transaction.amount
-                if let toAccount = transaction.toAccount {
-                    toAccount.balance -= transaction.amount
-                    toAccount.modifiedAt = Date()
+        withAnimation(.easeInOut(duration: 0.3)) {
+            // Update account balances before deleting the transaction
+            if let account = transaction.account {
+                switch transaction.type {
+                case .income:
+                    account.balance -= transaction.amount
+                case .expense:
+                    account.balance += transaction.amount
+                case .transfer:
+                    account.balance += transaction.amount
+                    if let toAccount = transaction.toAccount {
+                        toAccount.balance -= transaction.amount
+                        toAccount.modifiedAt = Date()
+                    }
                 }
+                account.modifiedAt = Date()
             }
-            account.modifiedAt = Date()
-        }
-        
-        modelContext.delete(transaction)
-        
-        do {
-            try modelContext.save()
-        } catch {
-            print("Error deleting transaction: \(error)")
+            
+            modelContext.delete(transaction)
+            
+            do {
+                try modelContext.save()
+            } catch {
+                print("Error deleting transaction: \(error)")
+            }
         }
     }
 }

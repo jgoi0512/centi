@@ -10,23 +10,18 @@ import SwiftData
 
 struct TransactionFilterView: View {
     @Environment(\.dismiss) private var dismiss
-    @Query private var accounts: [Account]
     @Query private var categories: [Category]
     
-    @Binding var selectedAccounts: Set<String>
     @Binding var selectedCategories: Set<String>
     @Binding var selectedTypes: Set<Transactions.TransactionType>
     
-    @State private var tempSelectedAccounts: Set<String>
     @State private var tempSelectedCategories: Set<String>
     @State private var tempSelectedTypes: Set<Transactions.TransactionType>
     
-    init(selectedAccounts: Binding<Set<String>>, selectedCategories: Binding<Set<String>>, selectedTypes: Binding<Set<Transactions.TransactionType>>) {
-        self._selectedAccounts = selectedAccounts
+    init(selectedCategories: Binding<Set<String>>, selectedTypes: Binding<Set<Transactions.TransactionType>>) {
         self._selectedCategories = selectedCategories
         self._selectedTypes = selectedTypes
         
-        self._tempSelectedAccounts = State(initialValue: selectedAccounts.wrappedValue)
         self._tempSelectedCategories = State(initialValue: selectedCategories.wrappedValue)
         self._tempSelectedTypes = State(initialValue: selectedTypes.wrappedValue)
     }
@@ -44,46 +39,12 @@ struct TransactionFilterView: View {
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            if tempSelectedTypes.contains(type) {
-                                tempSelectedTypes.remove(type)
-                            } else {
-                                tempSelectedTypes.insert(type)
-                            }
-                        }
-                    }
-                }
-                
-                Section("Accounts") {
-                    HStack {
-                        Button(tempSelectedAccounts.count == accounts.count ? "Deselect All" : "Select All") {
-                            if tempSelectedAccounts.count == accounts.count {
-                                tempSelectedAccounts.removeAll()
-                            } else {
-                                tempSelectedAccounts = Set(accounts.map { $0.name })
-                            }
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                        Spacer()
-                    }
-                    
-                    ForEach(accounts, id: \.id) { account in
-                        HStack {
-                            Image(systemName: tempSelectedAccounts.contains(account.name) ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(tempSelectedAccounts.contains(account.name) ? .blue : .gray)
-                            
-                            Image(systemName: account.icon)
-                                .foregroundColor(Color(account.color))
-                            
-                            Text(account.name)
-                            Spacer()
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            if tempSelectedAccounts.contains(account.name) {
-                                tempSelectedAccounts.remove(account.name)
-                            } else {
-                                tempSelectedAccounts.insert(account.name)
+                            withAnimation(.easeInOut(duration: 0.1)) {
+                                if tempSelectedTypes.contains(type) {
+                                    tempSelectedTypes.remove(type)
+                                } else {
+                                    tempSelectedTypes.insert(type)
+                                }
                             }
                         }
                     }
@@ -116,10 +77,12 @@ struct TransactionFilterView: View {
                         }
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            if tempSelectedCategories.contains(category.name) {
-                                tempSelectedCategories.remove(category.name)
-                            } else {
-                                tempSelectedCategories.insert(category.name)
+                            withAnimation(.easeInOut(duration: 0.1)) {
+                                if tempSelectedCategories.contains(category.name) {
+                                    tempSelectedCategories.remove(category.name)
+                                } else {
+                                    tempSelectedCategories.insert(category.name)
+                                }
                             }
                         }
                     }
@@ -136,7 +99,6 @@ struct TransactionFilterView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Apply") {
-                        selectedAccounts = tempSelectedAccounts
                         selectedCategories = tempSelectedCategories
                         selectedTypes = tempSelectedTypes
                         dismiss()

@@ -13,6 +13,8 @@ struct AddTransactionView: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var accounts: [Account]
     @Query private var categories: [Category]
+    @FocusState private var isAmountFieldFocused: Bool
+    @FocusState private var isNoteFieldFocused: Bool
     
     @State private var selectedType: Transactions.TransactionType = .expense
     @State private var amount: String = ""
@@ -37,9 +39,14 @@ struct AddTransactionView: View {
                 
                 Section("Amount") {
                     TextField("0.00", text: $amount)
+                        .focused($isAmountFieldFocused)
                         .keyboardType(.decimalPad)
                         .font(.largeTitle)
                         .fontWeight(.bold)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            isAmountFieldFocused = false
+                        }
                 }
                 
                 Section("Account") {
@@ -73,11 +80,24 @@ struct AddTransactionView: View {
                 
                 Section("Details") {
                     TextField("Note (Optional)", text: $note)
+                        .focused($isNoteFieldFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            isNoteFieldFocused = false
+                        }
                     DatePicker("Date", selection: $date, displayedComponents: .date)
+                        .onTapGesture {
+                            isAmountFieldFocused = false
+                            isNoteFieldFocused = false
+                        }
                 }
             }
             .navigationTitle("Add Transaction")
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture {
+                isAmountFieldFocused = false
+                isNoteFieldFocused = false
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -87,6 +107,8 @@ struct AddTransactionView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
+                        isAmountFieldFocused = false
+                        isNoteFieldFocused = false
                         saveTransaction()
                     }
                     .disabled(amount.isEmpty || selectedAccount == nil || category.isEmpty || (selectedType == .transfer && toAccount == nil))
@@ -96,7 +118,10 @@ struct AddTransactionView: View {
     }
     
     private func saveTransaction() {
-        guard let amountDouble = Double(amount),
+        let trimmedAmount = amount.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        guard let amountDouble = Double(trimmedAmount),
               let account = selectedAccount,
               !category.isEmpty else { return }
         
@@ -104,34 +129,37 @@ struct AddTransactionView: View {
             amount: amountDouble,
             type: selectedType,
             category: category,
-            note: note.isEmpty ? nil : note,
+            note: trimmedNote.isEmpty ? nil : trimmedNote,
             date: date,
             account: account,
             toAccount: selectedType == .transfer ? toAccount : nil
         )
         
-        modelContext.insert(transaction)
-        
-        // Update account balances
-        switch selectedType {
-        case .income:
-            account.balance += amountDouble
-        case .expense:
-            account.balance -= amountDouble
-        case .transfer:
-            if let toAcc = toAccount {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            modelContext.insert(transaction)
+            
+            // Update account balances
+            switch selectedType {
+            case .income:
+                account.balance += amountDouble
+            case .expense:
                 account.balance -= amountDouble
-                toAcc.balance += amountDouble
+            case .transfer:
+                if let toAcc = toAccount {
+                    account.balance -= amountDouble
+                    toAcc.balance += amountDouble
+                    toAcc.modifiedAt = Date()
+                }
             }
-        }
-        
-        account.modifiedAt = Date()
-        
-        do {
-            try modelContext.save()
-            dismiss()
-        } catch {
-            print("Error saving transaction: \(error)")
+            
+            account.modifiedAt = Date()
+            
+            do {
+                try modelContext.save()
+                dismiss()
+            } catch {
+                print("Error saving transaction: \(error)")
+            }
         }
     }
 }

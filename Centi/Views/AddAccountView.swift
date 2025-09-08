@@ -12,6 +12,8 @@ struct AddAccountView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @StateObject private var currencyManager = CurrencyManager.shared
+    @FocusState private var isNameFieldFocused: Bool
+    @FocusState private var isBalanceFieldFocused: Bool
     
     @State private var accountName = ""
     @State private var accountType: Account.AccountType = .transaction
@@ -28,15 +30,29 @@ struct AddAccountView: View {
             Form {
                 Section("Account Details") {
                     TextField("Account Name", text: $accountName)
+                        .focused($isNameFieldFocused)
+                        .submitLabel(.next)
+                        .onSubmit {
+                            isBalanceFieldFocused = true
+                        }
                     
                     Picker("Account Type", selection: $accountType) {
                         ForEach(Account.AccountType.allCases, id: \.self) { type in
                             Text(type.rawValue).tag(type)
                         }
                     }
+                    .onTapGesture {
+                        isNameFieldFocused = false
+                        isBalanceFieldFocused = false
+                    }
                     
                     TextField("Initial Balance", text: $initialBalance)
+                        .focused($isBalanceFieldFocused)
                         .keyboardType(.decimalPad)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            isBalanceFieldFocused = false
+                        }
                 }
                 
                 Section("Currency") {
@@ -76,6 +92,8 @@ struct AddAccountView: View {
                                     .scaleEffect(selectedIcon == icon ? 1.05 : 1.0)
                                     .animation(.easeInOut(duration: 0.2), value: selectedIcon)
                                     .onTapGesture {
+                                        isNameFieldFocused = false
+                                        isBalanceFieldFocused = false
                                         selectedIcon = icon
                                     }
                             }
@@ -96,6 +114,8 @@ struct AddAccountView: View {
                                     .scaleEffect(selectedColor == color ? 1.1 : 1.0)
                                     .animation(.easeInOut(duration: 0.2), value: selectedColor)
                                     .onTapGesture {
+                                        isNameFieldFocused = false
+                                        isBalanceFieldFocused = false
                                         selectedColor = color
                                     }
                             }
@@ -106,6 +126,10 @@ struct AddAccountView: View {
             }
             .navigationTitle("Add Account")
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture {
+                isNameFieldFocused = false
+                isBalanceFieldFocused = false
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -115,18 +139,24 @@ struct AddAccountView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
+                        isNameFieldFocused = false
+                        isBalanceFieldFocused = false
                         saveAccount()
                     }
-                    .disabled(accountName.isEmpty)
+                    .disabled(accountName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
     }
     
     private func saveAccount() {
-        let balance = Double(initialBalance) ?? 0
+        let trimmedName = accountName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let balance = Double(initialBalance.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+        
+        guard !trimmedName.isEmpty else { return }
+        
         let account = Account(
-            name: accountName,
+            name: trimmedName,
             type: accountType,
             balance: balance,
             icon: selectedIcon,

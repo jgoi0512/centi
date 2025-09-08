@@ -12,6 +12,7 @@ struct AccountDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @StateObject private var currencyManager = CurrencyManager.shared
+    @FocusState private var isNameFieldFocused: Bool
     
     let account: Account
     
@@ -42,6 +43,11 @@ struct AccountDetailView: View {
             Form {
                 Section("Account Details") {
                     TextField("Account Name", text: $name)
+                        .focused($isNameFieldFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            isNameFieldFocused = false
+                        }
                     
                     Picker("Account Type", selection: $selectedType) {
                         ForEach(Account.AccountType.allCases, id: \.self) { type in
@@ -94,7 +100,10 @@ struct AccountDetailView: View {
                                     .scaleEffect(selectedIcon == icon ? 1.05 : 1.0)
                                     .animation(.easeInOut(duration: 0.2), value: selectedIcon)
                                     .onTapGesture {
-                                        selectedIcon = icon
+                                        isNameFieldFocused = false
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedIcon = icon
+                                        }
                                     }
                             }
                         }
@@ -114,7 +123,10 @@ struct AccountDetailView: View {
                                     .scaleEffect(selectedColor == color ? 1.1 : 1.0)
                                     .animation(.easeInOut(duration: 0.2), value: selectedColor)
                                     .onTapGesture {
-                                        selectedColor = color
+                                        isNameFieldFocused = false
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedColor = color
+                                        }
                                     }
                             }
                         }
@@ -154,6 +166,9 @@ struct AccountDetailView: View {
             }
             .navigationTitle("Account Details")
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture {
+                isNameFieldFocused = false
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -163,10 +178,11 @@ struct AccountDetailView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
+                        isNameFieldFocused = false
                         saveAccount()
                     }
                     .fontWeight(.semibold)
-                    .disabled(name.isEmpty)
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
             .alert("Delete Account", isPresented: $showingDeleteAlert) {
@@ -181,7 +197,10 @@ struct AccountDetailView: View {
     }
     
     private func saveAccount() {
-        account.name = name
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+        
+        account.name = trimmedName
         account.type = selectedType
         account.icon = selectedIcon
         account.color = selectedColor
