@@ -82,7 +82,7 @@ struct TotalBalanceCard: View {
 }
 
 #Preview {
-    @State var selectedAccounts: Set<String> = []
+    @Previewable @State var selectedAccounts: Set<String> = []
     return TotalBalanceCard(
         balance: 0.1,
         accounts: [],

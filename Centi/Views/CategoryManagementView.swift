@@ -16,16 +16,10 @@ struct CategoryManagementView: View {
     @State private var showingAddCategory = false
     @State private var newCategoryName = ""
     @State private var selectedIcon = "tag"
-    @State private var selectedColor = "blue"
     
     private let availableIcons = [
         "tag", "cart", "car", "house", "gamecontroller",
         "heart", "airplane", "book", "scissors", "bag"
-    ]
-    
-    private let availableColors = [
-        "blue", "green", "red", "orange", "purple",
-        "pink", "yellow", "indigo", "teal", "gray"
     ]
     
     var body: some View {
@@ -35,7 +29,7 @@ struct CategoryManagementView: View {
                     ForEach(categories) { category in
                         HStack {
                             Image(systemName: category.icon)
-                                .foregroundColor(Color(category.color))
+                                .foregroundColor(.primary)
                                 .frame(width: 30)
                             
                             Text(category.name)
@@ -99,24 +93,12 @@ struct CategoryManagementView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                     
-                    Picker("Color", selection: $selectedColor) {
-                        ForEach(availableColors, id: \.self) { color in
-                            HStack {
-                                Circle()
-                                    .fill(Color(color))
-                                    .frame(width: 20, height: 20)
-                                Text(color.capitalized)
-                            }
-                            .tag(color)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
                 }
                 
                 Section {
                     HStack {
                         Image(systemName: selectedIcon)
-                            .foregroundColor(Color(selectedColor))
+                            .foregroundColor(.primary)
                             .frame(width: 30)
                         Text("Preview: \(newCategoryName)")
                             .foregroundColor(newCategoryName.isEmpty ? .secondary : .primary)
@@ -149,7 +131,7 @@ struct CategoryManagementView: View {
         let category = Category(
             name: newCategoryName,
             icon: selectedIcon,
-            color: selectedColor,
+            color: "appBlue", // Default color since colors won't be displayed
             isDefault: false
         )
         
@@ -182,7 +164,6 @@ struct CategoryManagementView: View {
     private func resetForm() {
         newCategoryName = ""
         selectedIcon = "tag"
-        selectedColor = "blue"
     }
     
     private func createDefaultCategoriesIfNeeded() {

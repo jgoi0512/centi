@@ -19,11 +19,11 @@ struct AddAccountView: View {
     @State private var accountType: Account.AccountType = .transaction
     @State private var initialBalance = ""
     @State private var selectedIcon = "creditcard"
-    @State private var selectedColor = "blue"
+    @State private var selectedColor = "appBlue"
     @State private var selectedCurrency: String? = nil
     
     private let icons = ["creditcard", "banknote", "dollarsign.circle", "building.columns", "chart.line.uptrend.xyaxis"]
-    private let colors = ["blue", "green", "purple", "orange", "red", "pink", "yellow"]
+    private let colors = ["appBlue", "appGreen", "appPurple", "appOrange", "appRed", "appPink", "appYellow", "appTeal", "appMint"]
     
     var body: some View {
         NavigationStack {
@@ -41,6 +41,7 @@ struct AddAccountView: View {
                             Text(type.rawValue).tag(type)
                         }
                     }
+                    .pickerStyle(.menu)
                     .onTapGesture {
                         isNameFieldFocused = false
                         isBalanceFieldFocused = false
@@ -66,7 +67,7 @@ struct AddAccountView: View {
                             .tag(code as String?)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(.menu)
                     
                     Text("If no currency is selected, the default currency from settings will be used.")
                         .font(.caption)

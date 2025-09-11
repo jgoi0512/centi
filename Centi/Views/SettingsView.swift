@@ -10,8 +10,10 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var currencyManager = CurrencyManager.shared
     @State private var iCloudSyncEnabled = true
-    @State private var notificationsEnabled = false
+//    @State private var notificationsEnabled = false
     @State private var showingCategoryManagement = false
+
+    let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "N/A"
     
     var body: some View {
         NavigationStack {
@@ -23,9 +25,9 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
                 
-                Section("Notifications") {
-                    Toggle("Enable Notifications", isOn: $notificationsEnabled)
-                }
+//                Section("Notifications") {
+//                    Toggle("Enable Notifications", isOn: $notificationsEnabled)
+//                }
                 
                 Section("Currency") {
                     Picker("Default Currency", selection: $currencyManager.defaultCurrency) {
@@ -36,7 +38,7 @@ struct SettingsView: View {
                             .tag(code)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(.menu)
                 }
                 
                 Section("Categories") {
@@ -60,7 +62,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Version")
                         Spacer()
-                        Text("1.0.0")
+                        Text(appVersion)
                             .foregroundColor(.secondary)
                     }
                 }

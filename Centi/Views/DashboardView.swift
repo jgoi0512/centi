@@ -79,48 +79,54 @@ struct DashboardView: View {
                     selectedAccounts: $selectedAccounts
                 )
                 .padding(.horizontal)
-                .padding(.top, 8)
                 .background(Color(.systemBackground))
                 .zIndex(1)
                     
                     // Recent Transactions List
                     VStack(alignment: .leading, spacing: 0) {
-                        HStack {
-                            Text("Recent Transactions")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                showingFilter = true
-                            }) {
-                                Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                                    .foregroundColor(hasActiveFilters ? .blue : .gray)
-                                    .font(.title2)
-                            }
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 15)
-                        .background(Color(.systemBackground))
-                        
                         if transactions.isEmpty {
+                            Spacer()
                             EmptyTransactionView()
                                 .padding(.horizontal)
+                                .padding(.top, 10)
+                            Spacer()
                         } else {
+                            HStack {
+                                Text("Recent Transactions")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    showingFilter = true
+                                }) {
+                                    Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                                        .foregroundColor(hasActiveFilters ? .blue : .gray)
+                                        .font(.title2)
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.top, 10)
+                            .padding(.bottom, 5)
+                            .background(Color(.systemBackground))
+                            
                             List {
                                 ForEach(sortedDates, id: \.self) { date in
                                     Section {
                                         ForEach(groupedTransactions[date] ?? []) { transaction in
                                             TransactionRow(transaction: transaction)
                                                 .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                                .contentShape(Rectangle())
                                                 .onTapGesture {
                                                     selectedTransaction = transaction
                                                 }
                                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                                    Button("Delete") {
+                                                    Button {
                                                         transactionToDelete = transaction
                                                         showingDeleteAlert = true
+                                                    } label: {
+                                                        Image(systemName: "trash")
                                                     }
                                                     .tint(.red)
                                                 }
@@ -134,13 +140,12 @@ struct DashboardView: View {
                                     }
                                 }
                             }
-                            .listStyle(.insetGrouped)
+                            .listStyle(.inset)
                         }
                     }
             }
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {

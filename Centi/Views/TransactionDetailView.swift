@@ -53,12 +53,14 @@ struct TransactionDetailView: View {
                             Text(type.rawValue).tag(type)
                         }
                     }
+                    .pickerStyle(.menu)
                     
                     Picker("Category", selection: $category) {
                         ForEach(categories, id: \.id) { cat in
                             Text(cat.name).tag(cat.name)
                         }
                     }
+                    .pickerStyle(.menu)
                     
                     DatePicker("Date", selection: $selectedDate, displayedComponents: [.date])
                 }
@@ -70,6 +72,7 @@ struct TransactionDetailView: View {
                             Text(account.name).tag(account as Account?)
                         }
                     }
+                    .pickerStyle(.menu)
                     
                     if selectedType == .transfer {
                         Picker("To Account", selection: $toAccount) {
@@ -78,6 +81,7 @@ struct TransactionDetailView: View {
                                 Text(account.name).tag(account as Account?)
                             }
                         }
+                        .pickerStyle(.menu)
                     }
                 }
                 

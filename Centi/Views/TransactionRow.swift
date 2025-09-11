@@ -26,22 +26,23 @@ struct TransactionRow: View {
             // Transaction Details
             VStack(alignment: .leading, spacing: 3) {
                 // Category and Account
-                HStack {
-                    Text(transaction.category)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-                    
-                    Spacer()
-                    
-                    if let account = transaction.account {
-                        Text(account.name)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color(account.color).opacity(0.15))
-                            .foregroundColor(Color(account.color))
-                            .cornerRadius(4)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(transaction.category)
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                        
+                        if let account = transaction.account {
+                            Text(account.name)
+                                .font(.caption2)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color(account.color).opacity(0.15))
+                                .foregroundColor(Color(account.color))
+                                .cornerRadius(4)
+                        }
                     }
                 }
                 

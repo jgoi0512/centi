@@ -56,6 +56,7 @@ struct AddTransactionView: View {
                             Text(account.name).tag(account as Account?)
                         }
                     }
+                    .pickerStyle(.menu)
                 }
                 
                 if selectedType == .transfer {
@@ -66,6 +67,7 @@ struct AddTransactionView: View {
                                 Text(account.name).tag(account as Account?)
                             }
                         }
+                        .pickerStyle(.menu)
                     }
                 }
                 
@@ -76,6 +78,7 @@ struct AddTransactionView: View {
                             Text(cat.name).tag(cat.name)
                         }
                     }
+                    .pickerStyle(.menu)
                 }
                 
                 Section("Details") {
@@ -114,6 +117,36 @@ struct AddTransactionView: View {
                     .disabled(amount.isEmpty || selectedAccount == nil || category.isEmpty || (selectedType == .transfer && toAccount == nil))
                 }
             }
+            .onAppear {
+                createDefaultCategoriesIfNeeded()
+            }
+        }
+    }
+    
+    private func createDefaultCategoriesIfNeeded() {
+        guard categories.isEmpty else { return }
+        
+        let defaultCategories = [
+            Category(name: "Food & Dining", icon: "fork.knife", color: "appOrange", isDefault: true),
+            Category(name: "Shopping", icon: "bag", color: "appPurple", isDefault: true),
+            Category(name: "Transportation", icon: "car", color: "appBlue", isDefault: true),
+            Category(name: "Bills & Utilities", icon: "house", color: "appRed", isDefault: true),
+            Category(name: "Entertainment", icon: "gamecontroller", color: "appGreen", isDefault: true),
+            Category(name: "Health & Fitness", icon: "heart", color: "appPink", isDefault: true),
+            Category(name: "Travel", icon: "airplane", color: "appIndigo", isDefault: true),
+            Category(name: "Education", icon: "book", color: "appYellow", isDefault: true),
+            Category(name: "Personal Care", icon: "scissors", color: "appTeal", isDefault: true),
+            Category(name: "Other", icon: "tag", color: "appGray", isDefault: true)
+        ]
+        
+        for category in defaultCategories {
+            modelContext.insert(category)
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error creating default categories: \(error)")
         }
     }
     

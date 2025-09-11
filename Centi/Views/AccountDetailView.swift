@@ -26,7 +26,7 @@ struct AccountDetailView: View {
     @State private var showingDeleteAlert = false
     
     private let icons = ["creditcard", "banknote", "dollarsign.circle", "building.columns", "chart.line.uptrend.xyaxis"]
-    private let colors = ["blue", "green", "purple", "orange", "red", "pink", "yellow"]
+    private let colors = ["appBlue", "appGreen", "appPurple", "appOrange", "appRed", "appPink", "appYellow", "appTeal", "appMint"]
     
     init(account: Account) {
         self.account = account
@@ -54,6 +54,7 @@ struct AccountDetailView: View {
                             Text(type.rawValue).tag(type)
                         }
                     }
+                    .pickerStyle(.navigationLink)
                     
                     HStack {
                         Text("Current Balance")
@@ -74,7 +75,7 @@ struct AccountDetailView: View {
                             .tag(code as String?)
                         }
                     }
-                    .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(.navigationLink)
                     
                     Text("If no currency is selected, the default currency from settings will be used.")
                         .font(.caption)

@@ -70,7 +70,7 @@ struct TransactionFilterView: View {
                                 .foregroundColor(tempSelectedCategories.contains(category.name) ? .blue : .gray)
                             
                             Image(systemName: category.icon)
-                                .foregroundColor(Color(category.color))
+                                .foregroundColor(.primary)
                             
                             Text(category.name)
                             Spacer()
