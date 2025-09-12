@@ -20,20 +20,25 @@ struct SettingsView: View {
             Form {
                 Section("Sync") {
                     Toggle("iCloud Sync", isOn: $settingsManager.iCloudSyncEnabled)
-                        .disabled(true)
                         .onChange(of: settingsManager.iCloudSyncEnabled) { _, newValue in
                             if settingsManager.requiresRestart {
                                 showingRestartAlert = true
                             }
                         }
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("iCloud Sync is temporarily disabled")
+                    HStack {
+                        Text("Status:")
+                        Spacer()
+                        Text(settingsManager.iCloudStatus)
+                            .foregroundColor(settingsManager.iCloudStatus == "Available" ? .green : .secondary)
+                    }
+                    
+                    if settingsManager.iCloudSyncEnabled {
+                        Text("Your data will sync across all devices signed into the same iCloud account")
                             .font(.caption)
-                            .foregroundColor(.orange)
-                            .fontWeight(.medium)
-                        
-                        Text("Data is stored locally on this device")
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("Data is stored locally on this device only")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

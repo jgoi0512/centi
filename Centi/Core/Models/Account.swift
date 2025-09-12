@@ -20,7 +20,13 @@ final class Account {
     var createdAt: Date = Date()
     var modifiedAt: Date = Date()
     
-    var transactions: [Transactions]?
+    // Inverse relationship to Transactions.account
+    @Relationship(deleteRule: .cascade, inverse: \Transactions.account)
+    var transactions: [Transactions]? = []
+     
+    // Inverse relationship to Transactions.toAccount
+    @Relationship(deleteRule: .cascade, inverse: \Transactions.toAccount)
+    var incomingTransfers: [Transactions]? = []
     
     init(name: String, type: AccountType, balance: Double = 0, icon: String = "creditcard", color: String = "appBlue", currency: String? = nil) {
         self.name = name

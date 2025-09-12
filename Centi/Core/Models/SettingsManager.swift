@@ -25,7 +25,7 @@ class SettingsManager: ObservableObject {
     
     private init() {
         // Temporarily default to false due to CloudKit relationship requirements
-        self.iCloudSyncEnabled = UserDefaults.standard.object(forKey: "iCloudSyncEnabled") as? Bool ?? false
+        self.iCloudSyncEnabled = UserDefaults.standard.object(forKey: "iCloudSyncEnabled") as? Bool ?? true
         checkiCloudStatus()
     }
     

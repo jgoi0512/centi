@@ -17,11 +17,11 @@ struct CentiApp: App {
         do {
             let schema = Schema([Account.self, Transactions.self, Category.self])
             
-            let iCloudSyncEnabled = UserDefaults.standard.object(forKey: "iCloudSyncEnabled") as? Bool ?? false
+            let iCloudSyncEnabled = UserDefaults.standard.object(forKey: "iCloudSyncEnabled") as? Bool ?? true
             
             let config = ModelConfiguration(
                 schema: schema, 
-                cloudKitDatabase: .private("iCloud.com.jgoi.centiApp")
+                cloudKitDatabase: iCloudSyncEnabled ? .private("iCloud.com.jgoi.centiApp") : .none
             )
             
             container = try ModelContainer(for: schema, configurations: config)
@@ -35,11 +35,12 @@ struct CentiApp: App {
             // If CloudKit fails, try without CloudKit
             do {
                 let schema = Schema([Account.self, Transactions.self, Category.self])
+                
                 let fallbackConfig = ModelConfiguration(
                     schema: schema, 
-                    isStoredInMemoryOnly: false, 
                     cloudKitDatabase: .none
                 )
+                
                 container = try ModelContainer(for: schema, configurations: [fallbackConfig])
                 
                 // Update settings to reflect that CloudKit is disabled
