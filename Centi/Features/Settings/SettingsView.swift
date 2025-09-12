@@ -9,9 +9,9 @@ import SwiftUI
 
 struct SettingsView: View {
     @StateObject private var currencyManager = CurrencyManager.shared
-    @State private var iCloudSyncEnabled = true
-//    @State private var notificationsEnabled = false
+    @EnvironmentObject private var settingsManager: SettingsManager
     @State private var showingCategoryManagement = false
+    @State private var showingRestartAlert = false
 
     let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "N/A"
     
@@ -19,10 +19,24 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Sync") {
-                    Toggle("iCloud Sync", isOn: $iCloudSyncEnabled)
-                    Text("Sync your data across all your devices")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    Toggle("iCloud Sync", isOn: $settingsManager.iCloudSyncEnabled)
+                        .disabled(true)
+                        .onChange(of: settingsManager.iCloudSyncEnabled) { _, newValue in
+                            if settingsManager.requiresRestart {
+                                showingRestartAlert = true
+                            }
+                        }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("iCloud Sync is temporarily disabled")
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .fontWeight(.medium)
+                        
+                        Text("Data is stored locally on this device")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
 //                Section("Notifications") {
@@ -70,6 +84,13 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .sheet(isPresented: $showingCategoryManagement) {
                 CategoryManagementView()
+            }
+            .alert("Restart Required", isPresented: $showingRestartAlert) {
+                Button("OK") {
+                    // User acknowledged the restart requirement
+                }
+            } message: {
+                Text("To apply iCloud Sync changes, please restart the app. Your data will be preserved.")
             }
         }
     }

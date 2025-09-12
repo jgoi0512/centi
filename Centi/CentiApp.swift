@@ -11,20 +11,52 @@ import SwiftData
 @main
 struct CentiApp: App {
     let container: ModelContainer
+    @StateObject private var settingsManager = SettingsManager.shared
     
     init() {
         do {
             let schema = Schema([Account.self, Transactions.self, Category.self])
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .automatic)
-            container = try ModelContainer(for: schema, configurations: [config])
+            
+            let iCloudSyncEnabled = UserDefaults.standard.object(forKey: "iCloudSyncEnabled") as? Bool ?? false
+            
+            let config = ModelConfiguration(
+                schema: schema, 
+                cloudKitDatabase: .private("iCloud.com.jgoi.centiApp")
+            )
+            
+            container = try ModelContainer(for: schema, configurations: config)
+            
+            // Mark settings as applied
+            UserDefaults.standard.set(iCloudSyncEnabled, forKey: "lastUsediCloudSyncEnabled")
+            
         } catch {
-            fatalError("Failed to configure SwiftData container: \(error)")
+            print("SwiftData container error: \(error)")
+            
+            // If CloudKit fails, try without CloudKit
+            do {
+                let schema = Schema([Account.self, Transactions.self, Category.self])
+                let fallbackConfig = ModelConfiguration(
+                    schema: schema, 
+                    isStoredInMemoryOnly: false, 
+                    cloudKitDatabase: .none
+                )
+                container = try ModelContainer(for: schema, configurations: [fallbackConfig])
+                
+                // Update settings to reflect that CloudKit is disabled
+                UserDefaults.standard.set(false, forKey: "iCloudSyncEnabled")
+                UserDefaults.standard.set(false, forKey: "lastUsediCloudSyncEnabled")
+                
+                print("Fallback: Running without CloudKit sync")
+            } catch {
+                fatalError("Failed to configure SwiftData container even without CloudKit: \(error)")
+            }
         }
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(settingsManager)
         }
         .modelContainer(container)
     }

@@ -11,19 +11,18 @@ import SwiftData
 @Model
 final class Account {
     var id: UUID = UUID()
-    var name: String
-    var type: AccountType
-    var balance: Double
-    var icon: String
-    var color: String
+    var name: String = ""
+    var type: AccountType = AccountType.transaction
+    var balance: Double = 0.0
+    var icon: String = "creditcard"
+    var color: String = "appBlue"
     var currency: String?
-    var createdAt: Date
-    var modifiedAt: Date
+    var createdAt: Date = Date()
+    var modifiedAt: Date = Date()
     
-    @Relationship(deleteRule: .cascade)
     var transactions: [Transactions]?
     
-    init(name: String, type: AccountType, balance: Double = 0, icon: String = "creditcard", color: String = "blue", currency: String? = nil) {
+    init(name: String, type: AccountType, balance: Double = 0, icon: String = "creditcard", color: String = "appBlue", currency: String? = nil) {
         self.name = name
         self.type = type
         self.balance = balance

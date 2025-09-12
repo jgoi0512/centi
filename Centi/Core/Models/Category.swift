@@ -11,11 +11,11 @@ import SwiftData
 @Model
 final class Category {
     var id: UUID = UUID()
-    var name: String
-    var icon: String
-    var color: String
-    var isDefault: Bool
-    var createdAt: Date
+    var name: String = ""
+    var icon: String = "tag"
+    var color: String = "appBlue"
+    var isDefault: Bool = false
+    var createdAt: Date = Date()
     
     init(name: String, icon: String = "tag", color: String = "appBlue", isDefault: Bool = false) {
         self.name = name

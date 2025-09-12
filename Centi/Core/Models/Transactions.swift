@@ -11,16 +11,14 @@ import SwiftUI
 @Model
 final class Transactions {
     var id: UUID = UUID()
-    var amount: Double
-    var type: TransactionType
-    var category: String
+    var amount: Double = 0.0
+    var type: TransactionType = TransactionType.expense
+    var category: String = ""
     var note: String?
-    var date: Date
-    var createdAt: Date
+    var date: Date = Date()
+    var createdAt: Date = Date()
     
-    @Relationship(inverse: \Account.transactions)
     var account: Account?
-    
     var toAccount: Account?
     
     init(amount: Double, type: TransactionType, category: String, note: String? = nil, date: Date = Date(), account: Account? = nil, toAccount: Account? = nil) {
