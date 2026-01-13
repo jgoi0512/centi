@@ -14,35 +14,38 @@ struct AccountsView: View {
      @State private var showingAddAccount = false
      @State private var selectedAccount: Account?
      
+     // New state variables for deletion confirmation
+     @State private var accountToDelete: Account?
+     @State private var showingDeleteAlert = false
+     
      var body: some View {
          NavigationStack {
-             ScrollView {
-                 VStack(spacing: 15) {
-                     if accounts.isEmpty {
-                         EmptyAccountsView()
-                             .padding()
-                     } else {
-                         LazyVStack(spacing: 15) {
-                             ForEach(accounts) { account in
-                                 AccountCard(account: account)
-                                     .padding(.horizontal)
-                                     .contentShape(Rectangle())
-                                     .onTapGesture {
-                                         selectedAccount = account
-                                     }
-                                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                         Button("Delete") {
-                                             deleteAccount(account)
-                                         }
-                                         .tint(.red)
-                                     }
+             List {
+                 if accounts.isEmpty {
+                     EmptyAccountsView()
+                         .listRowSeparator(.hidden)
+                         .listRowBackground(Color.clear)
+                 } else {
+                     ForEach(accounts) { account in
+                         AccountCard(account: account)
+                             .contentShape(Rectangle())
+                             .onTapGesture {
+                                 selectedAccount = account
                              }
-                         }
+                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                 Button(role: .destructive) {
+                                     accountToDelete = account
+                                     showingDeleteAlert = true
+                                 } label: {
+                                     Label("Delete", systemImage: "trash")
+                                 }
+                             }
+                             .listRowSeparator(.hidden)
+                             .listRowBackground(Color.clear)
                      }
                  }
-                 .padding(.top)
-                 .padding(.bottom, 100)
              }
+             .listStyle(.plain)
              .navigationTitle("Accounts")
              .toolbar {
                  ToolbarItem(placement: .navigationBarTrailing) {
@@ -59,6 +62,20 @@ struct AccountsView: View {
              }
              .sheet(item: $selectedAccount) { account in
                  AccountDetailView(account: account)
+             }
+             // Alert for deletion confirmation
+             .alert("Delete Account", isPresented: $showingDeleteAlert) {
+                 Button("Cancel", role: .cancel) {
+                     accountToDelete = nil
+                 }
+                 Button("Delete", role: .destructive) {
+                     if let account = accountToDelete {
+                         deleteAccount(account)
+                     }
+                     accountToDelete = nil
+                 }
+             } message: {
+                 Text("Are you sure you want to delete this account? This will also delete all associated transactions. This action cannot be undone.")
              }
          }
      }

@@ -13,12 +13,13 @@ struct AccountDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var currencyManager = CurrencyManager.shared
     @FocusState private var isNameFieldFocused: Bool
+    @FocusState private var isBalanceFieldFocused: Bool
     
     let account: Account
     
     @State private var name: String
     @State private var selectedType: Account.AccountType
-    @State private var initialBalance: String
+    @State private var currentBalance: String
     @State private var selectedIcon: String
     @State private var selectedColor: String
     @State private var selectedCurrency: String?
@@ -32,7 +33,7 @@ struct AccountDetailView: View {
         self.account = account
         _name = State(initialValue: account.name)
         _selectedType = State(initialValue: account.type)
-        _initialBalance = State(initialValue: String(format: "%.2f", account.balance))
+        _currentBalance = State(initialValue: String(format: "%.2f", account.balance))
         _selectedIcon = State(initialValue: account.icon)
         _selectedColor = State(initialValue: account.color)
         _selectedCurrency = State(initialValue: account.currency)
@@ -59,8 +60,10 @@ struct AccountDetailView: View {
                     HStack {
                         Text("Current Balance")
                         Spacer()
-                        Text(currencyManager.formatAmount(account.balance, currency: account.currency))
-                            .foregroundColor(.secondary)
+                        TextField("0.00", text: $currentBalance)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .focused($isBalanceFieldFocused)
                     }
                 }
                 
@@ -102,6 +105,7 @@ struct AccountDetailView: View {
                                     .animation(.easeInOut(duration: 0.2), value: selectedIcon)
                                     .onTapGesture {
                                         isNameFieldFocused = false
+                                        isBalanceFieldFocused = false
                                         withAnimation(.easeInOut(duration: 0.2)) {
                                             selectedIcon = icon
                                         }
@@ -125,6 +129,7 @@ struct AccountDetailView: View {
                                     .animation(.easeInOut(duration: 0.2), value: selectedColor)
                                     .onTapGesture {
                                         isNameFieldFocused = false
+                                        isBalanceFieldFocused = false
                                         withAnimation(.easeInOut(duration: 0.2)) {
                                             selectedColor = color
                                         }
@@ -167,9 +172,6 @@ struct AccountDetailView: View {
             }
             .navigationTitle("Account Details")
             .navigationBarTitleDisplayMode(.inline)
-            .onTapGesture {
-                isNameFieldFocused = false
-            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
@@ -180,6 +182,7 @@ struct AccountDetailView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         isNameFieldFocused = false
+                        isBalanceFieldFocused = false
                         saveAccount()
                     }
                     .fontWeight(.semibold)
@@ -199,10 +202,13 @@ struct AccountDetailView: View {
     
     private func saveAccount() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let balanceValue = Double(currentBalance) ?? account.balance
+        
         guard !trimmedName.isEmpty else { return }
         
         account.name = trimmedName
         account.type = selectedType
+        account.balance = balanceValue
         account.icon = selectedIcon
         account.color = selectedColor
         account.currency = selectedCurrency

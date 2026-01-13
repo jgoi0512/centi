@@ -19,17 +19,23 @@ struct ContentView: View {
                      }
                      .tag(0)
                  
+                 CategoriesView()
+                    .tabItem {
+                        Label("Categories", systemImage: "chart.pie.fill")
+                    }
+                    .tag(1)
+             
                  AccountsView()
                      .tabItem {
                          Label("Accounts", systemImage: "creditcard.fill")
                      }
-                     .tag(1)
+                     .tag(2)
                  
                  SettingsView()
                      .tabItem {
                          Label("Settings", systemImage: "gear")
                      }
-                     .tag(2)
+                     .tag(3)
              }
      }
 }
