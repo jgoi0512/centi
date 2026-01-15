@@ -19,7 +19,7 @@ struct CategoryManagementView: View {
     
     private let availableIcons = [
         "tag", "cart", "car", "house", "gamecontroller",
-        "heart", "airplane", "book", "scissors", "bag"
+        "heart", "airplane", "book", "scissors", "bag", "fork.knife"
     ]
     
     var body: some View {

@@ -151,7 +151,7 @@ struct CategoriesView: View {
             return transactions
         }
         
-        let calendar = Calendar.current
+        _ = Calendar.current
         let interval = dateInterval(for: selectedTimeRange, date: currentDate)
         
         return transactions.filter { transaction in
@@ -285,7 +285,7 @@ struct CategoriesView: View {
     private var isCurrentDateInFuture: Bool {
         if selectedTimeRange == .all { return false }
         
-        let calendar = Calendar.current
+        _ = Calendar.current
         let today = Date()
         let interval = dateInterval(for: selectedTimeRange, date: currentDate)
         return interval.end > today
