@@ -48,6 +48,9 @@ struct CategoriesView: View {
                         
                         Text(formattedDateRange)
                             .font(.headline)
+                            .id(formattedDateRange)
+                            .transition(.opacity)
+                            .animation(.easeInOut, value: formattedDateRange)
                         
                         Spacer()
                         
@@ -110,6 +113,9 @@ struct CategoriesView: View {
                                     Text(currencyManager.formatAmount(data.total))
                                         .fontWeight(.semibold)
                                         .foregroundColor(data.total < 0 ? .red : (data.total > 0 ? .green : .primary))
+                                        // Numeric transition for list items
+                                        .contentTransition(.numericText(value: data.total))
+                                        .animation(.easeInOut, value: data.total)
                                     
                                     Text("\(data.transactions.count) trans.")
                                         .font(.caption)
@@ -333,6 +339,8 @@ struct SummaryCard: View {
             Text(currencyManager.formatAmount(amount))
                 .font(.headline)
                 .foregroundColor(color)
+                .contentTransition(.numericText(value: amount))
+                .animation(.easeInOut, value: amount)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()

@@ -79,70 +79,67 @@ struct DashboardView: View {
                     selectedAccounts: $selectedAccounts
                 )
                 .padding(.horizontal)
+                .padding(.bottom, 10)
                 .background(Color(.systemBackground))
-                .zIndex(1)
-                    
-                    // Recent Transactions List
-                    VStack(alignment: .leading, spacing: 0) {
-                        if transactions.isEmpty {
-                            Spacer()
-                            EmptyTransactionView()
-                                .padding(.horizontal)
-                                .padding(.top, 10)
-                            Spacer()
-                        } else {
-                            HStack {
-                                Text("Recent Transactions")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    showingFilter = true
-                                }) {
-                                    Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                                        .foregroundColor(hasActiveFilters ? .blue : .gray)
-                                        .font(.title2)
-                                }
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 10)
-                            .padding(.bottom, 5)
-                            .background(Color(.systemBackground))
-                            
-                            List {
-                                ForEach(sortedDates, id: \.self) { date in
-                                    Section {
-                                        ForEach(groupedTransactions[date] ?? []) { transaction in
-                                            TransactionRow(transaction: transaction)
-                                                .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
-                                                .contentShape(Rectangle())
-                                                .onTapGesture {
-                                                    selectedTransaction = transaction
-                                                }
-                                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                                    Button {
-                                                        transactionToDelete = transaction
-                                                        showingDeleteAlert = true
-                                                    } label: {
-                                                        Image(systemName: "trash")
-                                                    }
-                                                    .tint(.red)
-                                                }
-                                        }
-                                    } header: {
-                                        Text(dateLabel(for: date))
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.secondary)
-                                            .textCase(nil)
-                                    }
-                                }
-                            }
-                            .listStyle(.inset)
+                
+                if transactions.isEmpty {
+                    Spacer()
+                    EmptyTransactionView()
+                        .padding(.horizontal)
+                    Spacer()
+                } else {
+                    // Fixed Header
+                    HStack {
+                        Text("Recent Transactions")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            showingFilter = true
+                        }) {
+                            Image(systemName: hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                                .foregroundColor(hasActiveFilters ? .blue : .gray)
+                                .font(.title2)
                         }
                     }
+                    .padding(.horizontal)
+                    .padding(.bottom, 5)
+                    .background(Color(.systemBackground))
+                    
+                    // Scrollable List
+                    List {
+                        ForEach(sortedDates, id: \.self) { date in
+                            Section {
+                                ForEach(groupedTransactions[date] ?? []) { transaction in
+                                    TransactionRow(transaction: transaction)
+                                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            selectedTransaction = transaction
+                                        }
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button {
+                                                transactionToDelete = transaction
+                                                showingDeleteAlert = true
+                                            } label: {
+                                                Image(systemName: "trash")
+                                            }
+                                            .tint(.red)
+                                        }
+                                }
+                            } header: {
+                                Text(dateLabel(for: date))
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.secondary)
+                                    .textCase(nil)
+                            }
+                        }
+                    }
+                    .listStyle(.inset)
+                }
             }
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.inline)
@@ -169,7 +166,7 @@ struct DashboardView: View {
                 TransactionDetailView(transaction: transaction)
             }
             .alert("Delete Transaction", isPresented: $showingDeleteAlert) {
-                Button("Cancel", role: .cancel) { 
+                Button("Cancel", role: .cancel) {
                     transactionToDelete = nil
                 }
                 Button("Delete", role: .destructive) {
